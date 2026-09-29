@@ -1,0 +1,11 @@
+import {z} from 'zod';
+export const categories={training:['Minimum Billings','Combo','Skill Trainings','Achievers'],session:['Personal Meeting','One-to-One Meeting','Achievers Club Meetings'],recording:['One-to-One Meeting','Achievers Club','Training Replay'],ebook:['Personal Books','E-Books']} as const;
+export const types=['training','session','recording','ebook'] as const;
+export const responseInput=z.object({enrollments:z.number().int().min(0).max(100000),confirmations:z.number().int().min(0).max(100000),calls:z.number().int().min(0).max(100000)}).strict();
+export const resourceInput=z.object({type:z.enum(types),title:z.string().trim().min(1).max(180),description:z.string().trim().max(4000),category:z.string(),url:z.string().url().max(2000).refine(v=>['https:','http:'].includes(new URL(v).protocol),'Use an HTTP or HTTPS link'),scheduledAt:z.string().datetime().nullable()}).strict().refine(v=>(categories[v.type] as readonly string[]).includes(v.category),'Choose a category for this resource type');
+export type ResourceInput=z.infer<typeof resourceInput>;
+export type Resource=ResourceInput&{id:string;created_at:string;updated_at:string};
+export type Member={id:string;name:string;email?:string;created_at:string};
+export type DailyResponse={id:string;user_id:string;date:string;enrollments:number;confirmations:number;calls:number;score:number;created_at:string};
+export type Data={me:Member;isAdmin:boolean;adminSession:boolean;adminConfigured:boolean;today:string;users:Member[];responses:DailyResponse[];resources:Resource[];progress:{user_id:string;resource_id:string;completed_at:string}[]};
+export const score=(v:{enrollments:number;confirmations:number;calls:number})=>Math.round((v.enrollments*5+v.confirmations*3+v.calls*2))/10;

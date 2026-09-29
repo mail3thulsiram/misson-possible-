@@ -1,0 +1,2 @@
+import {db,route,mutation,digest} from '@/lib/server';
+export async function POST(req:Request){return route(async()=>{mutation(req);const token=req.headers.get('cookie')?.match(/(?:^|;\s*)mp_admin=([^;]+)/)?.[1];if(token)await db().prepare('DELETE FROM admin_sessions WHERE hash=?').bind(await digest(token)).run();return Response.json({ok:true},{headers:{'Set-Cookie':'mp_admin=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'}})})}
